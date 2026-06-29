@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Worker Dashboard | Studio{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 5rem; min-height: 80vh;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 class="section-title" style="text-align: left; margin: 0;">Worker Dashboard</h2>
+        <a href="{% url 'worker_profile' user.username %}" class="btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.9rem; background: transparent; border: 1px solid var(--accent);">View My Public Profile</a>
+    </div>
+    
+    {% if user.profile.approval_status == 'pending' %}
+    <div style="background: rgba(255, 171, 0, 0.1); border: 1px solid #ffab00; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h3 style="color: #ffab00; margin-bottom: 0.5rem;">Profile Under Review</h3>
+        <p style="color: var(--text-muted);">Your worker profile is currently pending approval. You will not appear in the marketplace and clients cannot hire you until an administrator approves your account.</p>
+    </div>
+    {% elif user.profile.approval_status == 'declined' %}
+    <div style="background: rgba(255, 71, 87, 0.1); border: 1px solid #ff4757; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h3 style="color: #ff4757; margin-bottom: 0.5rem;">Profile Declined</h3>
+        <p style="color: var(--text-muted);">Your worker application has been declined. Please contact support for more information.</p>
+    </div>
+    {% endif %}
+
+    <p class="section-subtitle" style="text-align: left; margin-left: 0;">Manage your incoming client requests.</p>
+    
+    {% load socialaccount %}
+    {% get_social_accounts user as accounts %}
+    <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin-bottom: 0.5rem;">GitHub Integration</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Connect your GitHub account to showcase your repositories on your profile.</p>
+        </div>
+        <div>
+            {% if accounts.github %}
+                <span style="color: #2ed573; font-weight: 600;">✓ Connected to GitHub ({{ accounts.github.0.extra_data.login }})</span>
+            {% else %}
+                <a href="{% provider_login_url 'github' process='connect' %}" class="btn-primary" style="background: #24292e; border: none;"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" style="width: 20px; vertical-align: middle; margin-right: 8px; filter: invert(1);">Connect GitHub</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="margin-top: 3rem;">
+        <h3 style="margin-bottom: 1.5rem;">Incoming Requests</h3>
+        {% for booking in bookings %}
+        <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">From: {{ booking.client.username }} ({{ booking.client.email }})</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Target Date: {{ booking.preferred_date|date:"M d, Y" }}</p>
+                </div>
+                <span style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem;
+                    {% if booking.status == 'pending' %}background: rgba(255, 171, 0, 0.1); color: #ffab00;
+                    {% elif booking.status == 'accepted' or booking.status == 'completed' %}background: rgba(46, 213, 115, 0.1); color: #2ed573;
+                    {% else %}background: rgba(255, 71, 87, 0.1); color: #ff4757;{% endif %}">
+                    {{ booking.status }}
+                </span>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <strong>Services Requested:</strong><br>
+                <div style="margin-top: 0.5rem;">
+                    {% for service in booking.services.all %}
+                        <span style="background: rgba(108, 92, 231, 0.1); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">{{ service.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if booking.special_requests %}
+            <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--card-border);">
+                <strong>Project Details:</strong>
+                <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.95rem;">{{ booking.special_requests }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 4rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;">
+            <p style="color: var(--text-muted);">You have no booking requests right now.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}{{ worker_user.username }}'s Profile | Studio{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 5rem;">
+    <!-- Profile Header -->
+    <div style="display: flex; gap: 3rem; align-items: center; margin-bottom: 4rem; background: var(--card-bg); padding: 3rem; border-radius: 24px; border: 1px solid var(--card-border);">
+        <div style="width: 150px; height: 150px; border-radius: 50%; background: #1a1c23; overflow: hidden; flex-shrink: 0;">
+            {% if worker_user.profile.profile_picture %}
+                <img src="{{ worker_user.profile.profile_picture.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% endif %}
+        </div>
+        <div>
+            <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">{{ worker_user.username }}</h1>
+            <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 1rem;">{{ worker_user.profile.bio }}</p>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if worker_user.profile.hourly_rate %}
+                    <span style="background: rgba(46, 213, 115, 0.1); color: #2ed573; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 600;">${{ worker_user.profile.hourly_rate }}/hr</span>
+                {% endif %}
+                
+                {% load socialaccount %}
+                {% get_social_accounts worker_user as accounts %}
+                {% if accounts.github %}
+                    <a href="https://github.com/{{ accounts.github.0.extra_data.login }}" target="_blank" style="color: #d1d8e0; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 50px;">
+                        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" style="width: 20px; filter: invert(1);">
+                        GitHub Profile
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Section -->
+    <h2 class="section-title" style="text-align: left;">Portfolio</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 5rem;">
+        {% for item in portfolio_items %}
+        <div style="background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden;">
+            <div style="width: 100%; height: 250px; background-color: #1a1c23;">
+                {% if item.images.first %}
+                    <img src="{{ item.images.first.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% endif %}
+            </div>
+            <div style="padding: 2rem;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">{{ item.title }}</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">{{ item.description|truncatewords:20 }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-muted);">This worker hasn't uploaded any portfolio items yet.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Booking Form -->
+    <h2 class="section-title" style="text-align: left;">Hire {{ worker_user.username }}</h2>
+    <div style="max-width: 700px; background: var(--card-bg); padding: 3rem; border-radius: 24px; border: 1px solid var(--card-border); margin-bottom: 5rem;">
+        {% if user.is_authenticated %}
+            {% if user.profile.user_type == 'client' %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #d1d8e0;">Services</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            {% for checkbox in form.services %}
+                                <label style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 12px; border: 1px solid var(--card-border); display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    {{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        {{ form.services.errors }}
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #d1d8e0;">Target Date</label>
+                        <input type="date" name="{{ form.preferred_date.html_name }}" id="{{ form.preferred_date.id_for_label }}" style="width: 100%; padding: 1rem; background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); border-radius: 12px; color: white;" required>
+                        {{ form.preferred_date.errors }}
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #d1d8e0;">Project Details</label>
+                        <textarea name="{{ form.special_requests.html_name }}" id="{{ form.special_requests.id_for_label }}" rows="5" style="width: 100%; padding: 1rem; background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); border-radius: 12px; color: white;"></textarea>
+                        {{ form.special_requests.errors }}
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: 100%; padding: 1.2rem; font-size: 1.1rem;">Submit Request</button>
+                </form>
+            {% else %}
+                <p style="color: var(--text-muted);">You are logged in as a Worker. You must be a Client to hire other workers.</p>
+            {% endif %}
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center;">Please <a href="{% url 'login' %}" style="color: var(--accent);">Log In</a> to hire this worker.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

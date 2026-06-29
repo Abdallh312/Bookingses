@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;}
+        .header { background-color: #f8f9fa; padding: 15px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { padding: 20px 0; }
+        .reference { color: #0056b3; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Booking Request Received</h2>
+        </div>
+        <div class="content">
+            <p>Hi {{ client_name }},</p>
+            <p>Thank you for reaching out! Your booking request has been securely stored.</p>
+            
+            <p><strong>Reference Number:</strong> <span class="reference">{{ booking_reference }}</span></p>
+            <p><strong>Role:</strong> {{ client_role|title }}</p>
+            
+            <h3>Requested Services:</h3>
+            <ul>
+                {% for service in services %}
+                    <li>{{ service.name }}</li>
+                {% endfor %}
+            </ul>
+            
+            <p><strong>Target Date:</strong> {{ preferred_date }}</p>
+            
+            <p><strong>Next Steps:</strong></p>
+            <p>I will review your request and get back to you within 1-2 business days with an estimate, availability confirmation, and any follow-up questions.</p>
+            
+            <p>If you have any urgent questions, simply reply directly to this email.</p>
+            <br>
+            <p>Best regards,<br><strong>Your Name / Studio</strong></p>
+        </div>
+    </div>
+</body>
+</html>
