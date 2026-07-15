@@ -91,9 +91,17 @@ WSGI_APPLICATION = 'portfolio_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import shutil
+db_path = BASE_DIR / 'db.sqlite3'
+if os.environ.get('VERCEL') or os.environ.get('VERCEL_URL'):
+    tmp_db_path = '/tmp/db.sqlite3'
+    if not os.path.exists(tmp_db_path) and os.path.exists(db_path):
+        shutil.copy2(db_path, tmp_db_path)
+    db_path = tmp_db_path
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=f"sqlite:///{db_path}",
         conn_max_age=600,
     )
 }
